@@ -1,0 +1,29 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  h1 {
+    @apply text-slate-700 text-xl;
+  }
+  .loading-button {
+    display: inline;
+  }
+}
+
+@layer utilities {
+  /* default hidden doesn't work because linkedin already has a class with  */
+  /*  display: none!important :( */
+  .hide {
+    display: none;
+  }
+  /* Chrome, Safari and Opera */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+  }
+}

@@ -1,0 +1,63 @@
+name: Publish
+
+on:
+  push:
+    branches:
+      - "**"
+jobs:
+  deploy_staging:
+    environment: staging
+    name: Publish Staging to Store
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 20
+      - name: Build with .env
+        working-directory: crx-react
+        env:
+          VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_KEY: ${{ vars.VITE_SUPABASE_KEY }}
+          VITE_SENTRY_DSN: ${{ vars.VITE_SENTRY_DSN }}
+          VITE_SENTRY_AUTH_TOKEN_CONTENT: ${{ vars.VITE_SENTRY_AUTH_TOKEN_CONTENT }}
+          VITE_STAGE: ${{ vars.VITE_STAGE }}
+        run: |
+          npm ci
+          npm run build
+      - name: Upload to chrome store
+        uses: mnao305/chrome-extension-upload@v4.0.1
+        with:
+          file-path: crx-react/dist-zip/dist.zip
+          extension-id: ${{ vars.EXTENSION_ID }}
+          client-id: ${{  secrets.GOOGLE_CLIENT_ID }}
+          client-secret: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          refresh-token: ${{ secrets.GOOGLE_REFRESH_TOKEN }}
+  deploy_prod:
+    environment: prod
+    name: Publish Prod to Store
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 20
+      - name: Build with .env
+        working-directory: crx-react
+        env:
+          VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_KEY: ${{ vars.VITE_SUPABASE_KEY }}
+          VITE_SENTRY_DSN: ${{ vars.VITE_SENTRY_DSN }}
+          VITE_SENTRY_AUTH_TOKEN_CONTENT: ${{ vars.VITE_SENTRY_AUTH_TOKEN_CONTENT }}
+          VITE_STAGE: ${{ vars.VITE_STAGE }}
+        run: |
+          npm ci
+          npm run build
+      - name: Upload to chrome store
+        uses: mnao305/chrome-extension-upload@v4.0.1
+        with:
+          file-path: crx-react/dist-zip/dist.zip
+          extension-id: ${{ vars.EXTENSION_ID }}
+          client-id: ${{  secrets.GOOGLE_CLIENT_ID }}
+          client-secret: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          refresh-token: ${{ secrets.GOOGLE_REFRESH_TOKEN }}
