@@ -6,7 +6,7 @@ import { sentryVitePlugin } from "@sentry/vite-plugin";
 
 export default defineConfig(({ mode }) => {
   process.env = { ...process.env, ...loadEnv(mode, process.cwd()) };
-
+  const stage = process.env.VITE_STAGE;
   return {
     plugins: [
       react(),
@@ -16,7 +16,7 @@ export default defineConfig(({ mode }) => {
         project: "outreachr-chrome",
       }),
       crx({
-        manifest: "./src/manifest.json",
+        manifest: `./src/assets/${stage}/manifest.json`,
       }),
       zipPack(),
     ],

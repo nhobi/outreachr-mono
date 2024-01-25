@@ -68,6 +68,19 @@ async function handleMessage(
     response({ message: "Fetch Successful", result: json });
   } else if (action === "signup") {
     const result = await supabase.auth.signUp(value);
+    await fetch(supabaseUrl + "/rest/v1/users", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        apikey: supabaseKey,
+        Authorization: "Bearer " + result.data.session?.access_token,
+        Prefer: "return=representation",
+      },
+      body: JSON.stringify({
+        id: result.data.user?.id,
+      }),
+    });
+
     response({ message: "Successfully signed up!", data: result });
   } else if (action === "signin") {
     console.log("requesting auth");

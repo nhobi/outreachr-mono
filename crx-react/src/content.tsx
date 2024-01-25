@@ -1,6 +1,5 @@
-import { createRoot } from "react-dom/client";
-import App from "../App";
-import "./content.css";
+import React, { createRoot } from "react-dom/client";
+import App from "./App";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import * as Sentry from "@sentry/react";

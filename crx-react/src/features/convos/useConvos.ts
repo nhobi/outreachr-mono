@@ -2,7 +2,7 @@ import browser from "webextension-polyfill";
 import { useSession } from "../session/SessionContext";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { updateCollectionItem } from "../../utils/updateCollectionItem";
-import { format, intervalToDuration, subDays } from "date-fns";
+import { intervalToDuration } from "date-fns";
 import { useCallback, useMemo } from "react";
 import { ConvoPartial } from "./convoHelpers";
 
