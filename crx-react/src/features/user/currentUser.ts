@@ -51,13 +51,16 @@ export const useCurrentUser = (s?: Session) => {
     queryFn: getCurrentUser,
   });
 
+  const currentUser = query.data;
   const mutation = useMutation({
     mutationFn: updateCurrentUser,
     onMutate: async (updatedUser) => {
-      queryClient.setQueryData([queryKey], () => updatedUser);
+      queryClient.setQueryData([queryKey], () => ({
+        ...updatedUser,
+        id: currentUser.id,
+      }));
     },
   });
-  const currentUser = query.data;
 
   if (!query.isFetched || !session) {
     return null;
