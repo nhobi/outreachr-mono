@@ -68,6 +68,7 @@ async function handleMessage(
     response({ message: "Fetch Successful", result: json });
   } else if (action === "signup") {
     const result = await supabase.auth.signUp(value);
+
     await fetch(supabaseUrl + "/rest/v1/users", {
       method: "POST",
       headers: {
@@ -83,11 +84,10 @@ async function handleMessage(
 
     response({ message: "Successfully signed up!", data: result });
   } else if (action === "signin") {
-    console.log("requesting auth");
     const { data, error } = await supabase.auth.signInWithPassword(value);
     response({ data, error });
   } else if (action === "getSession") {
-    supabase.auth.getSession().then(response);
+    supabase.auth.refreshSession().then(response);
   } else if (action === "signout") {
     const { error } = await supabase.auth.signOut();
     response({ data: null, error });
