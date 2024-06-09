@@ -1,25 +1,28 @@
-import browser from "webextension-polyfill";
 import { Session } from "@supabase/supabase-js";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  UseMutationResult,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { useSession } from "../session/SessionContext";
+import { queryDb } from "../../api/api";
 
 export const useCurrentUser = (s?: Session) => {
   const session = s || useSession();
 
   async function getCurrentUser() {
-    if (!session?.user?.id) {
+    if (!session?.user?.id || !session?.access_token) {
+      console.error("No active session.");
       return Promise.resolve(null);
     }
-    const res = await browser.runtime.sendMessage({
-      action: "fetch",
-      value: {
-        method: "GET",
-        table: "users",
-        select: "*",
-        userToken: session?.access_token,
-        query: {
-          id: `eq.${session?.user?.id}`,
-        },
+
+    const res = await queryDb<CurrentUser[]>({
+      method: "GET",
+      table: "users",
+      userToken: session?.access_token,
+      searchParams: {
+        id: `eq.${session?.user?.id}`,
       },
     });
 
@@ -27,18 +30,21 @@ export const useCurrentUser = (s?: Session) => {
   }
 
   async function updateCurrentUser(updatedUser: { tags: Tag[] }) {
-    const res = await browser.runtime.sendMessage({
-      action: "fetch",
-      value: {
-        method: "PATCH",
-        table: "users",
-        userToken: session.access_token,
-        body: { tags: updatedUser.tags },
-        query: {
-          id: `eq.${currentUser.id}`,
-        },
+    if (!currentUser || !session?.access_token) {
+      console.error("No active session.");
+      return Promise.resolve(null);
+    }
+
+    const res = await queryDb<CurrentUser[]>({
+      method: "PATCH",
+      table: "users",
+      userToken: session.access_token,
+      body: { tags: updatedUser.tags },
+      searchParams: {
+        id: `eq.${currentUser.id}`,
       },
     });
+
     return res.result[0] as CurrentUser;
   }
 
@@ -55,20 +61,22 @@ export const useCurrentUser = (s?: Session) => {
   const mutation = useMutation({
     mutationFn: updateCurrentUser,
     onMutate: async (updatedUser) => {
-      queryClient.setQueryData([queryKey], () => ({
-        ...updatedUser,
-        id: currentUser.id,
-      }));
+      if (currentUser) {
+        queryClient.setQueryData([queryKey], () => ({
+          ...updatedUser,
+          id: currentUser.id,
+        }));
+      }
     },
   });
 
-  if (!query.isFetched || !session) {
+  if (!query.isFetched || !session || !currentUser?.id) {
     return null;
   }
 
   return {
-    loggedIn: !!currentUser?.id,
-    id: currentUser?.id,
+    loggedIn: true,
+    id: currentUser.id,
     tags: (currentUser?.tags ?? []) as Tag[],
     userMutation: mutation,
   };
@@ -77,6 +85,13 @@ export const useCurrentUser = (s?: Session) => {
 export type CurrentUser = {
   id: string;
   tags: Tag[];
+  loggedIn: boolean;
+  userMutation: UseMutationResult<
+    CurrentUser | null,
+    Error,
+    { tags: Tag[] },
+    void
+  >;
 };
 
 export type Tag = {

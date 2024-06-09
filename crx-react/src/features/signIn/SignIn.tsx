@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Layout } from "../../Layout";
 
 interface Props {
-  onSignIn: (email: string, password: string) => void;
+  onSignIn: (email: string, password: string) => Promise<void>;
   onScreenChange: () => void;
   title: string;
   helpText?: string;
@@ -17,7 +17,8 @@ export const SignIn = ({
   onScreenChange,
   helpText,
   error,
-}: Props) => {
+  children,
+}: React.PropsWithChildren<Props>) => {
   const [loading, setLoading] = useState(false);
 
   function renderLoadingSpinner() {
@@ -53,6 +54,7 @@ export const SignIn = ({
   }
   return (
     <Layout>
+      {children}
       <Formik
         initialValues={{
           email: "",

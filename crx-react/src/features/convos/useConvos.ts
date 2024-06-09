@@ -1,25 +1,22 @@
-import browser from "webextension-polyfill";
 import { useSession } from "../session/SessionContext";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { updateCollectionItem } from "../../utils/updateCollectionItem";
 import { intervalToDuration } from "date-fns";
 import { useCallback, useMemo } from "react";
 import { ConvoPartial } from "./convoHelpers";
+import { queryDb } from "../../api/api";
 
 export const useConvos = (threadId?: string) => {
   const session = useSession();
   const queryClient = useQueryClient();
 
   async function getConvos() {
-    const res = await browser.runtime.sendMessage({
-      action: "fetch",
-      value: {
-        method: "GET",
-        table: "convos",
-        userToken: session.access_token,
-        query: {
-          user_id: `eq.${session.currentUser?.id}`,
-        },
+    const res = await queryDb<Convo[]>({
+      method: "GET",
+      table: "convos",
+      userToken: session.access_token,
+      searchParams: {
+        user_id: `eq.${session.currentUser?.id}`,
       },
     });
 
@@ -28,31 +25,23 @@ export const useConvos = (threadId?: string) => {
 
   function upsertConvo(newConvo: Partial<Convo>) {
     if (newConvo.id) {
-      return browser.runtime.sendMessage({
-        action: "fetch",
-        value: {
-          method: "PATCH",
-          table: "convos",
-          select: "*",
-          userToken: session.access_token,
-          body: newConvo,
-          query: {
-            id: `eq.${newConvo.id}`,
-          },
+      return queryDb<Convo[]>({
+        method: "PATCH",
+        table: "convos",
+        userToken: session.access_token,
+        body: newConvo,
+        searchParams: {
+          id: `eq.${newConvo.id}`,
         },
       });
     } else {
-      return browser.runtime.sendMessage({
-        action: "fetch",
-        value: {
-          method: "POST",
-          table: "convos",
-          select: "*",
-          userToken: session.access_token,
-          body: {
-            ...newConvo,
-            user_id: session.currentUser?.id,
-          },
+      return queryDb<Convo[]>({
+        method: "POST",
+        table: "convos",
+        userToken: session.access_token,
+        body: {
+          ...newConvo,
+          user_id: session.currentUser?.id,
         },
       });
     }
@@ -81,9 +70,7 @@ export const useConvos = (threadId?: string) => {
       // return await queryClient.invalidateQueries({ queryKey: [queryKey] });
     },
   });
-  const match = convoQuery.data?.find((c) => c.thread_id === threadId);
-
-  const currentConvo = { ...match };
+  const currentConvo = convoQuery.data?.find((c) => c.thread_id === threadId);
 
   const convos = convoQuery.data ?? [];
   const tags = session.currentUser?.tags ?? [];
@@ -102,12 +89,6 @@ export const useConvos = (threadId?: string) => {
           start: new Date(c.last_touchpoint),
           end: new Date(),
         });
-        console.log(
-          duration,
-          "duration",
-          new Date(c.last_touchpoint),
-          c.last_touchpoint,
-        );
 
         if (duration?.days ?? 0 >= ct.remindMeDays) {
           return true;
@@ -149,7 +130,7 @@ export const useConvoPartial = (convoPartial: ConvoPartial) => {
   const { convoMutation, currentConvo } = useConvos(convoPartial?.threadId);
 
   const updateConvo = useCallback(
-    function(updatedData: Partial<Convo>) {
+    function (updatedData: Partial<Convo>) {
       if (currentConvo?.id) {
         convoMutation.mutate({
           ...updatedData,

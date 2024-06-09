@@ -1,4 +1,6 @@
-export const Layout = (props: React.PropsWithChildren) => {
+export const Layout = (
+  props: React.PropsWithChildren<{ menuItems?: React.ReactNode }>,
+) => {
   return (
     <div className="w-full shadow-lg text-sm mb-10">
       <div className="flex flex-col gap-4 p-4 pb-0 shadow-sm bg-gradient-to-l from-purple-100 to-blue-200 rounded-md">
@@ -7,7 +9,7 @@ export const Layout = (props: React.PropsWithChildren) => {
             Outreachr 🚀
           </h1>
 
-          <div id="menu-items-portal"></div>
+          {props.menuItems}
         </div>
 
         <div className="max-h-[400px] no-scrollbar overflow-auto p-0 pb-4">

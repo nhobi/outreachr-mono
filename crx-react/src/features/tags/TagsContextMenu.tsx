@@ -81,7 +81,6 @@ export const TagsContextMenu = () => {
     } else {
       newTags[tagId] = true;
     }
-    debugger;
     updateConvo({
       tags: newTags,
     });
@@ -90,7 +89,7 @@ export const TagsContextMenu = () => {
   if (tags) {
     return (
       <div
-        className="fixed text-sm rounded-sm overflow-hidden border bg-gradient-to-r from-purple-100 to-blue-200 rounded-md shadow-xl rounded"
+        className="fixed text-sm rounded-sm overflow-hidden border bg-gradient-to-r from-purple-100 to-blue-200 rounded-md shadow-xl rounded z-[1000]"
         style={{ ...menuPosStyle, width: "200px" }}
         id="outreachr-context-menu"
       >

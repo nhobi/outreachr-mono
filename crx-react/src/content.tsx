@@ -23,27 +23,56 @@ Sentry.init({
   replaysSessionSampleRate: 0.1, // This sets the sample rate at 10%. You may want to change it to 100% while in development and then sample at a lower rate in production.
   replaysOnErrorSampleRate: 1.0, // If you're not already sampling the entire session, change the sample rate to 100% when sampling sessions where errors occur.
 });
+let timeout: ReturnType<typeof setTimeout>;
 
-window.onload = async () => {
-  const interval = setInterval(() => {
-    const sidebar = document.querySelector(".scaffold-layout__aside");
+function mount() {
+  clearTimeout(timeout);
+  timeout = setTimeout(() => {
+    const interval = setInterval(() => {
+      const sidebar = document.querySelector(".scaffold-layout__aside");
 
-    if (sidebar) {
-      clearInterval(interval);
+      if (sidebar) {
+        clearInterval(interval);
 
-      const container = document.createElement("div");
+        if (document.querySelectorAll("#outreachr-rendered").length !== 0) {
+          return;
+        }
+        const container = document.createElement("div");
 
-      const queryClient = new QueryClient();
-      sidebar.prepend(container);
-      // queryClient.invalidateQueries()
-      const root = createRoot(container);
+        container.id = "outreachr-rendered";
 
-      root.render(
-        <QueryClientProvider client={queryClient}>
-          <App />
-          <ReactQueryDevtools initialIsOpen={true} />
-        </QueryClientProvider>,
-      );
+        const queryClient = new QueryClient();
+
+        sidebar.prepend(container);
+        // queryClient.invalidateQueries()
+        const root = createRoot(container);
+
+        root.render(
+          <QueryClientProvider client={queryClient}>
+            <App />
+            <ReactQueryDevtools initialIsOpen={true} />
+          </QueryClientProvider>,
+        );
+      }
+    }, 100);
+  }, 300);
+}
+
+function init() {
+  const obs = new MutationObserver(() => {
+    if (location.pathname.includes("messaging/thread/2-")) {
+      mount();
     }
-  }, 100);
-};
+  });
+
+  const titleElement = document.querySelector("title");
+
+  if (titleElement) {
+    obs.observe(titleElement, {
+      childList: true,
+      subtree: true,
+    });
+  }
+}
+
+init();
